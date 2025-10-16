@@ -86,33 +86,9 @@ public class LinkResolverActivity extends AppCompatActivity {
 
         ((Infinity) getApplication()).getAppComponent().inject(this);
 
-        Uri uri = getIntent().getData();
-        if (uri == null) {
-            String url = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            if (!URLUtil.isValidUrl(url)) {
-                Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
-                return;
-            }
-            try {
-                uri = Uri.parse(url);
-            } catch (NullPointerException e) {
-                Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
-                return;
-            }
-        }
-
-        if (uri.getScheme() == null && uri.getHost() == null) {
-            if (uri.toString().isEmpty()) {
-                Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
-                return;
-            }
-            handleUri(getRedditUriByPath(uri.toString()));
-        } else {
-            handleUri(uri);
-        }
+        // DISABLED - All link navigation blocked to keep app locked to r/dumbphones
+        Toast.makeText(this, "Link navigation is disabled", Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     private void handleUri(Uri uri) {

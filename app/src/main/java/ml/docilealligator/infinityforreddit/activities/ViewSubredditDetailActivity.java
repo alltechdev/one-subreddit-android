@@ -214,6 +214,14 @@ public class ViewSubredditDetailActivity extends BaseActivity implements SortTyp
 
         super.onCreate(savedInstanceState);
 
+        // Block all subreddit navigation except r/dumbphones
+        String requestedSubreddit = getIntent().getStringExtra(EXTRA_SUBREDDIT_NAME_KEY);
+        if (requestedSubreddit == null || !requestedSubreddit.equalsIgnoreCase("dumbphones")) {
+            Toast.makeText(this, "Access to other subreddits is disabled", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         binding = ActivityViewSubredditDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 

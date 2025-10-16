@@ -357,6 +357,7 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
         }
 
         setSupportActionBar(binding.includedAppBar.toolbar);
+        getSupportActionBar().setTitle("r/dumbphones");
         setToolbarGoToTop(binding.includedAppBar.toolbar);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -561,8 +562,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                 break;
             }
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_SEARCH: {
-                Intent intent = new Intent(this, SearchActivity.class);
-                startActivity(intent);
+                // DISABLED - Search blocked to keep locked to r/dumbphones
+                Toast.makeText(this, "Search is disabled", Toast.LENGTH_SHORT).show();
                 break;
             }
             case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_OPTION_GO_TO_SUBREDDIT:
@@ -837,8 +838,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                     break;
                 }
                 case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_SEARCH: {
-                    Intent intent = new Intent(this, SearchActivity.class);
-                    startActivity(intent);
+                    // DISABLED - Search blocked to keep locked to r/dumbphones
+                    Toast.makeText(this, "Search is disabled", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case SharedPreferencesUtils.MAIN_ACTIVITY_BOTTOM_APP_BAR_FAB_GO_TO_SUBREDDIT:
@@ -987,7 +988,11 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                 mShowMultiReddits, mShowFavoriteSubscribedSubreddits, mShowSubscribedSubreddits);
         binding.includedAppBar.viewPagerMainActivity.setAdapter(sectionsPagerAdapter);
         binding.includedAppBar.viewPagerMainActivity.setUserInputEnabled(!mDisableSwipingBetweenTabs);
-        if (mMainActivityTabsSharedPreferences.getBoolean((accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : accountName) + SharedPreferencesUtils.MAIN_PAGE_SHOW_TAB_NAMES, true)) {
+
+        // HIDE TABS - All tabs show r/dumbphones anyway
+        binding.includedAppBar.tabLayoutMainActivity.setVisibility(View.GONE);
+
+        if (false && mMainActivityTabsSharedPreferences.getBoolean((accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : accountName) + SharedPreferencesUtils.MAIN_PAGE_SHOW_TAB_NAMES, true)) {
             if (mShowFavoriteMultiReddits || mShowMultiReddits || mShowFavoriteSubscribedSubreddits || mShowSubscribedSubreddits) {
                 binding.includedAppBar.tabLayoutMainActivity.setTabMode(TabLayout.MODE_SCROLLABLE);
             } else {
@@ -1269,11 +1274,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == R.id.action_search_main_activity) {
-            Intent intent = new Intent(this, SearchActivity.class);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.action_sort_main_activity) {
+        // REMOVED: Search menu item
+        if (itemId == R.id.action_sort_main_activity) {
             changeSortType();
             return true;
         } else if (itemId == R.id.action_refresh_main_activity) {
@@ -1501,8 +1503,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                 postLayoutBottomSheetFragment.show(getSupportFragmentManager(), postLayoutBottomSheetFragment.getTag());
                 break;
             case FABMoreOptionsBottomSheetFragment.FAB_OPTION_SEARCH:
-                Intent intent = new Intent(this, SearchActivity.class);
-                startActivity(intent);
+                // DISABLED - Search blocked to keep locked to r/dumbphones
+                Toast.makeText(this, "Search is disabled", Toast.LENGTH_SHORT).show();
                 break;
             case FABMoreOptionsBottomSheetFragment.FAB_OPTION_GO_TO_SUBREDDIT: {
                 goToSubreddit();
@@ -1538,139 +1540,13 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     }
 
     private void goToSubreddit() {
-        View rootView = getLayoutInflater().inflate(R.layout.dialog_go_to_thing_edit_text,
-                binding.includedAppBar.coordinatorLayoutMainActivity, false);
-        TextInputEditText thingEditText = rootView.findViewById(R.id.text_input_edit_text_go_to_thing_edit_text);
-        RecyclerView recyclerView = rootView.findViewById(R.id.recycler_view_go_to_thing_edit_text);
-        SubredditAutocompleteRecyclerViewAdapter adapter = new SubredditAutocompleteRecyclerViewAdapter(
-                this, mCustomThemeWrapper, subredditData -> {
-            Utils.hideKeyboard(this);
-            Intent intent = new Intent(MainActivity.this, ViewSubredditDetailActivity.class);
-            intent.putExtra(ViewSubredditDetailActivity.EXTRA_SUBREDDIT_NAME_KEY, subredditData.getName());
-            startActivity(intent);
-        });
-        recyclerView.setAdapter(adapter);
-
-        thingEditText.requestFocus();
-        Utils.showKeyboard(this, new Handler(), thingEditText);
-        thingEditText.setOnEditorActionListener((textView, i, keyEvent) -> {
-            if (i == EditorInfo.IME_ACTION_DONE) {
-                Utils.hideKeyboard(this);
-                Intent subredditIntent = new Intent(this, ViewSubredditDetailActivity.class);
-                subredditIntent.putExtra(ViewSubredditDetailActivity.EXTRA_SUBREDDIT_NAME_KEY, thingEditText.getText().toString());
-                startActivity(subredditIntent);
-                return true;
-            }
-            return false;
-        });
-
-        boolean nsfw = mNsfwAndSpoilerSharedPreferences.getBoolean((accountName.equals(Account.ANONYMOUS_ACCOUNT) ? "" : accountName) + SharedPreferencesUtils.NSFW_BASE, false);
-        Handler handler = new Handler();
-        thingEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (subredditAutocompleteCall != null && subredditAutocompleteCall.isExecuted()) {
-                    subredditAutocompleteCall.cancel();
-                }
-                if (autoCompleteRunnable != null) {
-                    handler.removeCallbacks(autoCompleteRunnable);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                String currentQuery = editable.toString().trim();
-                if (!currentQuery.isEmpty()) {
-                    autoCompleteRunnable = () -> {
-                        subredditAutocompleteCall = mOauthRetrofit.create(RedditAPI.class).subredditAutocomplete(APIUtils.getOAuthHeader(accessToken),
-                                currentQuery, nsfw);
-                        subredditAutocompleteCall.enqueue(new Callback<>() {
-                            @Override
-                            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                                subredditAutocompleteCall = null;
-                                if (response.isSuccessful() && !call.isCanceled()) {
-                                    ParseSubredditData.parseSubredditListingData(mExecutor, handler,
-                                            response.body(), nsfw, new ParseSubredditData.ParseSubredditListingDataListener() {
-                                                @Override
-                                                public void onParseSubredditListingDataSuccess(ArrayList<SubredditData> subredditData, String after) {
-                                                    adapter.setSubreddits(subredditData);
-                                                }
-
-                                                @Override
-                                                public void onParseSubredditListingDataFail() {
-
-                                                }
-                                            });
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                                subredditAutocompleteCall = null;
-                            }
-                        });
-                    };
-
-                    handler.postDelayed(autoCompleteRunnable, 500);
-                }
-            }
-        });
-        new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialogTheme)
-                .setTitle(R.string.go_to_subreddit)
-                .setView(rootView)
-                .setPositiveButton(R.string.ok, (dialogInterface, i)
-                        -> {
-                    Utils.hideKeyboard(this);
-                    Intent subredditIntent = new Intent(this, ViewSubredditDetailActivity.class);
-                    subredditIntent.putExtra(ViewSubredditDetailActivity.EXTRA_SUBREDDIT_NAME_KEY, thingEditText.getText().toString());
-                    startActivity(subredditIntent);
-                })
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
-                    Utils.hideKeyboard(this);
-                })
-                .setOnDismissListener(dialogInterface -> {
-                    Utils.hideKeyboard(this);
-                })
-                .show();
+        // DISABLED - Locked to r/dumbphones only
+        Toast.makeText(this, "Navigation to other subreddits is disabled", Toast.LENGTH_SHORT).show();
     }
 
     private void goToUser() {
-        View rootView = getLayoutInflater().inflate(R.layout.dialog_go_to_thing_edit_text, binding.includedAppBar.coordinatorLayoutMainActivity, false);
-        TextInputEditText thingEditText = rootView.findViewById(R.id.text_input_edit_text_go_to_thing_edit_text);
-        thingEditText.requestFocus();
-        Utils.showKeyboard(this, new Handler(), thingEditText);
-        thingEditText.setOnEditorActionListener((textView, i, keyEvent) -> {
-            if (i == EditorInfo.IME_ACTION_DONE) {
-                Utils.hideKeyboard(this);
-                Intent userIntent = new Intent(this, ViewUserDetailActivity.class);
-                userIntent.putExtra(ViewUserDetailActivity.EXTRA_USER_NAME_KEY, thingEditText.getText().toString());
-                startActivity(userIntent);
-                return true;
-            }
-            return false;
-        });
-        new MaterialAlertDialogBuilder(this, R.style.MaterialAlertDialogTheme)
-                .setTitle(R.string.go_to_user)
-                .setView(rootView)
-                .setPositiveButton(R.string.ok, (dialogInterface, i)
-                        -> {
-                    Utils.hideKeyboard(this);
-                    Intent userIntent = new Intent(this, ViewUserDetailActivity.class);
-                    userIntent.putExtra(ViewUserDetailActivity.EXTRA_USER_NAME_KEY, thingEditText.getText().toString());
-                    startActivity(userIntent);
-                })
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
-                    Utils.hideKeyboard(this);
-                })
-                .setOnDismissListener(dialogInterface -> {
-                    Utils.hideKeyboard(this);
-                })
-                .show();
+        // DISABLED - User profile navigation blocked
+        Toast.makeText(this, "User profile navigation is disabled", Toast.LENGTH_SHORT).show();
     }
 
     private void randomThing() {
@@ -1802,71 +1678,13 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
         }
 
         private Fragment generatePostFragment(int postType, String name) {
-            if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_HOME) {
-                PostFragment fragment = new PostFragment();
-                Bundle bundle = new Bundle();
-                bundle.putInt(PostFragment.EXTRA_POST_TYPE, accountName.equals(Account.ANONYMOUS_ACCOUNT) ? PostPagingSource.TYPE_ANONYMOUS_FRONT_PAGE : PostPagingSource.TYPE_FRONT_PAGE);
-                fragment.setArguments(bundle);
-                return fragment;
-            } else if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_ALL) {
-                PostFragment fragment = new PostFragment();
-                Bundle bundle = new Bundle();
-                bundle.putInt(PostFragment.EXTRA_POST_TYPE, PostPagingSource.TYPE_SUBREDDIT);
-                bundle.putString(PostFragment.EXTRA_NAME, "all");
-                fragment.setArguments(bundle);
-                return fragment;
-            } else if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_SUBREDDIT) {
-                PostFragment fragment = new PostFragment();
-                Bundle bundle = new Bundle();
-                bundle.putInt(PostFragment.EXTRA_POST_TYPE, PostPagingSource.TYPE_SUBREDDIT);
-                bundle.putString(PostFragment.EXTRA_NAME, name);
-                fragment.setArguments(bundle);
-                return fragment;
-            } else if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_MULTIREDDIT) {
-                PostFragment fragment = new PostFragment();
-                Bundle bundle = new Bundle();
-                bundle.putString(PostFragment.EXTRA_NAME, name);
-                bundle.putInt(PostFragment.EXTRA_POST_TYPE, accountName.equals(Account.ANONYMOUS_ACCOUNT) ? PostPagingSource.TYPE_ANONYMOUS_MULTIREDDIT : PostPagingSource.TYPE_MULTI_REDDIT);
-                fragment.setArguments(bundle);
-                return fragment;
-            } else if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_USER) {
-                PostFragment fragment = new PostFragment();
-                Bundle bundle = new Bundle();
-                bundle.putInt(PostFragment.EXTRA_POST_TYPE, PostPagingSource.TYPE_USER);
-                bundle.putString(PostFragment.EXTRA_USER_NAME, name);
-                bundle.putString(PostFragment.EXTRA_USER_WHERE, PostPagingSource.USER_WHERE_SUBMITTED);
-                fragment.setArguments(bundle);
-                return fragment;
-            } else if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_UPVOTED
-                    || postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_DOWNVOTED
-                    || postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_HIDDEN
-                    || postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_SAVED) {
-                PostFragment fragment = new PostFragment();
-                Bundle bundle = new Bundle();
-                bundle.putInt(PostFragment.EXTRA_POST_TYPE, PostPagingSource.TYPE_USER);
-                bundle.putString(PostFragment.EXTRA_USER_NAME, accountName);
-                bundle.putBoolean(PostFragment.EXTRA_DISABLE_READ_POSTS, true);
-
-                if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_UPVOTED) {
-                    bundle.putString(PostFragment.EXTRA_USER_WHERE, PostPagingSource.USER_WHERE_UPVOTED);
-                } else if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_DOWNVOTED) {
-                    bundle.putString(PostFragment.EXTRA_USER_WHERE, PostPagingSource.USER_WHERE_DOWNVOTED);
-                } else if (postType == SharedPreferencesUtils.MAIN_PAGE_TAB_POST_TYPE_HIDDEN) {
-                    bundle.putString(PostFragment.EXTRA_USER_WHERE, PostPagingSource.USER_WHERE_HIDDEN);
-                } else {
-                    bundle.putString(PostFragment.EXTRA_USER_WHERE, PostPagingSource.USER_WHERE_SAVED);
-                }
-
-                fragment.setArguments(bundle);
-                return fragment;
-            } else {
-                PostFragment fragment = new PostFragment();
-                Bundle bundle = new Bundle();
-                bundle.putInt(PostFragment.EXTRA_POST_TYPE, PostPagingSource.TYPE_SUBREDDIT);
-                bundle.putString(PostFragment.EXTRA_NAME, "popular");
-                fragment.setArguments(bundle);
-                return fragment;
-            }
+            // LOCKED TO r/dumbphones ONLY - All tabs will show r/dumbphones
+            PostFragment fragment = new PostFragment();
+            Bundle bundle = new Bundle();
+            bundle.putInt(PostFragment.EXTRA_POST_TYPE, PostPagingSource.TYPE_SUBREDDIT);
+            bundle.putString(PostFragment.EXTRA_NAME, "dumbphones");
+            fragment.setArguments(bundle);
+            return fragment;
         }
 
         @Override
