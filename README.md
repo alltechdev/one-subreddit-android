@@ -33,18 +33,6 @@ This is a modified version of Infinity for Reddit that restricts the app to brow
    <string name="application_name" translatable="false">r/dumbphones</string>
    ```
 
-3. **Build the APK**
-
-   ```bash
-   ./gradlew assembleRelease -x lint -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease
-   ```
-
-   Find your APK at: `app/build/outputs/apk/release/app-release-unsigned.apk`
-
-### Option 2: Download pre-built APK
-
-Download the latest release from the [Releases](https://github.com/YOUR_USERNAME/Infinity-For-Reddit/releases) page.
-
 ## What's locked down?
 
 - ✅ All feeds show only the configured subreddit
@@ -65,24 +53,6 @@ The following files contain the subreddit locking logic:
 - `app/src/main/java/ml/docilealligator/infinityforreddit/activities/SearchActivity.java` - Search disable
 - `app/src/main/res/menu/main_activity.xml` - Search icon removal
 - `app/src/main/res/values/strings.xml` - App name
-
-## Requirements
-
-- Android Studio or command line with JDK 11+
-- Android SDK
-
-## Building from source
-
-1. Clone the repository
-2. Open in Android Studio, or use command line:
-
-```bash
-# Debug build
-./gradlew assembleDebug
-
-# Release build
-./gradlew assembleRelease -x lint -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease
-```
 
 ## License
 
