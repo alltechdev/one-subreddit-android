@@ -360,19 +360,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
         getSupportActionBar().setTitle("r/dumbphones");
         setToolbarGoToTop(binding.includedAppBar.toolbar);
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, binding.drawerLayout, binding.includedAppBar.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        toggle.getDrawerArrowDrawable().setColor(mCustomThemeWrapper.getToolbarPrimaryTextAndIconColor());
-        binding.drawerLayout.addDrawerListener(toggle);
-        binding.drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                if (adapter != null) {
-                    adapter.closeAccountManagement(true);
-                }
-            }
-        });
-        toggle.syncState();
+        // REMOVED: Navigation drawer/hamburger menu completely disabled
+        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         mViewPager2 = binding.includedAppBar.viewPagerMainActivity;
 
@@ -924,7 +913,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                         } else if (stringId == R.string.settings) {
                             intent = new Intent(MainActivity.this, SettingsActivity.class);
                         } else if (stringId == R.string.add_account) {
-                            intent = new Intent(MainActivity.this, LoginActivity.class);
+                            // DISABLED - Login removed
+                            Toast.makeText(MainActivity.this, "Login is disabled", Toast.LENGTH_SHORT).show();
                         } else if (stringId == R.string.anonymous_account) {
                             AccountManagement.switchToAnonymousMode(mRedditDataRoomDatabase, mCurrentAccountSharedPreferences,
                                     mExecutor, new Handler(), false, () -> {
@@ -933,13 +923,8 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
                                         finish();
                                     });
                         } else if (stringId == R.string.log_out) {
-                            AccountManagement.switchToAnonymousMode(mRedditDataRoomDatabase, mCurrentAccountSharedPreferences,
-                                    mExecutor, new Handler(), true,
-                                    () -> {
-                                        Intent logOutIntent = new Intent(MainActivity.this, MainActivity.class);
-                                        startActivity(logOutIntent);
-                                        finish();
-                                    });
+                            // DISABLED - Login removed, so logout is not needed
+                            Toast.makeText(MainActivity.this, "Account management is disabled", Toast.LENGTH_SHORT).show();
                         }
                         if (intent != null) {
                             startActivity(intent);
@@ -956,23 +941,14 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
 
                     @Override
                     public void onAccountClick(@NonNull String accountName) {
-                        AccountManagement.switchAccount(mRedditDataRoomDatabase, mCurrentAccountSharedPreferences,
-                                mExecutor, new Handler(), accountName, newAccount -> {
-                            Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                            startActivity(intent);
-                            finish();
-                        });
+                        // DISABLED - Account switching removed
+                        Toast.makeText(MainActivity.this, "Account switching is disabled", Toast.LENGTH_SHORT).show();
                     }
 
             @Override
             public void onAccountLongClick(@NonNull String accountName) {
-                new MaterialAlertDialogBuilder(MainActivity.this, R.style.MaterialAlertDialogTheme)
-                        .setTitle(R.string.log_out)
-                        .setMessage(accountName)
-                        .setPositiveButton(R.string.yes,
-                                (dialogInterface, i) -> AccountManagement.removeAccount(mRedditDataRoomDatabase, mExecutor, accountName))
-                        .setNegativeButton(R.string.no, null)
-                        .show();
+                // DISABLED - Account removal removed
+                Toast.makeText(MainActivity.this, "Account management is disabled", Toast.LENGTH_SHORT).show();
             }
         });
         setInboxCount();
@@ -1275,7 +1251,26 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         // REMOVED: Search menu item
-        if (itemId == R.id.action_sort_main_activity) {
+        if (itemId == R.id.action_theme_toggle_main_activity) {
+            // Toggle between light and dark theme
+            String currentTheme = mSharedPreferences.getString(SharedPreferencesUtils.THEME_KEY, "2");
+            if (currentTheme.equals("1")) {
+                // Currently dark, switch to light
+                mSharedPreferences.edit().putString(SharedPreferencesUtils.THEME_KEY, "0").apply();
+                AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_NO);
+                mCustomThemeWrapper.setThemeType(CustomThemeSharedPreferencesUtils.LIGHT);
+            } else {
+                // Currently light or auto, switch to dark
+                mSharedPreferences.edit().putString(SharedPreferencesUtils.THEME_KEY, "1").apply();
+                AppCompatDelegate.setDefaultNightMode(MODE_NIGHT_YES);
+                if (mSharedPreferences.getBoolean(SharedPreferencesUtils.AMOLED_DARK_KEY, false)) {
+                    mCustomThemeWrapper.setThemeType(CustomThemeSharedPreferencesUtils.AMOLED);
+                } else {
+                    mCustomThemeWrapper.setThemeType(CustomThemeSharedPreferencesUtils.DARK);
+                }
+            }
+            return true;
+        } else if (itemId == R.id.action_sort_main_activity) {
             changeSortType();
             return true;
         } else if (itemId == R.id.action_refresh_main_activity) {
