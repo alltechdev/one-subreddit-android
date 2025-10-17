@@ -1,180 +1,93 @@
-<h1 align="center">
-  Infinity For Reddit+ <a href="https://www.patreon.com/docile_alligator"><img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
-  
-</h1>
+# Single-Subreddit Reddit Client
 
-<div align="center">
+A customizable Reddit client that locks to a single subreddit, perfect for focused browsing or creating dedicated apps for specific communities.
 
-A Reddit client on Android written in Java. It does not have any ads and it features a clean UI and smooth browsing experience
+## What is this?
 
-<img align="right" src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/icon.png" width=200>
+This is a modified version of Infinity for Reddit that restricts the app to browse only one subreddit. All navigation, search, and link functionality is disabled - users can only view posts from the configured subreddit.
 
-</div>
+**Current configuration:** Locked to `r/dumbphones`
 
-<br>
+## How to customize for your own subreddit
 
-<div align="center">
+1. **Fork this repository**
+   - Click the "Fork" button at the top of this page
+   - Clone your fork: `git clone https://github.com/YOUR_USERNAME/Infinity-For-Reddit.git`
 
-Infinity for Reddit+ is available on Google Play and F-Droid
+2. **Change the subreddit name in 3 files**
 
-  <a href="https://play.google.com/store/apps/details?id=ml.docilealligator.infinityforreddit.plus">
-      <img alt="Get it on Google Play" height="80" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" />
-      </a>  
-      <a href="https://apt.izzysoft.de/fdroid/index/apk/ml.docilealligator.infinityforreddit.patreon">
-          <img alt="Get it on F-Droid" height="80" src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" />
-  </a>
+   **File 1:** `app/src/main/java/ml/docilealligator/infinityforreddit/activities/MainActivity.java`
 
-</div>
+   Find and replace all instances of `"dumbphones"` with your subreddit name (without the r/):
+   - Line 360: `getSupportActionBar().setTitle("r/dumbphones");`
+   - Line 1680: `bundle.putString(PostFragment.EXTRA_NAME, "dumbphones");`
 
-<div align="center">
+   **File 2:** `app/src/main/java/ml/docilealligator/infinityforreddit/activities/ViewSubredditDetailActivity.java`
 
-<br>
-    <a href="https://github.com/Docile-Alligator/Infinity-For-Reddit/wiki"><strong>Explore the docs »</strong></a>
-<br>
+   - Line 219: `if (requestedSubreddit == null || !requestedSubreddit.equalsIgnoreCase("dumbphones")) {`
 
-<a href="https://github.com/Docile-Alligator/Infinity-For-Reddit/issues">Report a Bug</a>
-·
-<a href="https://github.com/Docile-Alligator/Infinity-For-Reddit/discussions/categories/ideas">Request a Feature</a>
-·
-<a href="https://github.com/Docile-Alligator/Infinity-For-Reddit/discussions/categories/q-a">Ask a Question</a>
+   **File 3:** `app/src/main/res/values/strings.xml`
 
-</div>
+   Change the app name (line 1):
+   ```xml
+   <string name="application_name" translatable="false">r/dumbphones</string>
+   ```
 
-<br>
+3. **Build the APK**
 
-<div align="center">
+   ```bash
+   ./gradlew assembleRelease -x lint -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease
+   ```
 
-[![release](https://img.shields.io/github/v/release/Docile-Alligator/Infinity-For-Reddit)](https://github.com/Docile-Alligator/Infinity-For-Reddit/releases)
-[![license](https://img.shields.io/github/license/Docile-Alligator/Infinity-For-Reddit)](LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/Docile-Alligator/Infinity-For-Reddit)](https://github.com/Docile-Alligator/Infinity-For-Reddit/issues)
+   Find your APK at: `app/build/outputs/apk/release/app-release-unsigned.apk`
 
-</div>
+### Option 2: Download pre-built APK
 
-## Donation
-<p>Infinity for Reddit+:</p>
-<a href="https://play.google.com/store/apps/details?id=ml.docilealligator.infinityforreddit.plus">
-    <img alt="Get it on Google Play" height="80" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" />
-</a> 
+Download the latest release from the [Releases](https://github.com/YOUR_USERNAME/Infinity-For-Reddit/releases) page.
 
-Patreon: https://www.patreon.com/docile_alligator
+## What's locked down?
 
-Bitcoin: bc1qxtkd5ap9na7uy8nr9qpt6jny6tdwaj4v43ddle
+- ✅ All feeds show only the configured subreddit
+- ✅ Search completely disabled
+- ✅ Cannot navigate to other subreddits
+- ✅ Cannot view user profiles
+- ✅ All links (internal & external) blocked
+- ✅ Tab bar hidden (all tabs show same content)
 
-<details>
-  <summary>Table of Contents</summary>
+## Modified files
 
-- [About](#about)
-  - [Built With](#built-with)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Usage](#usage)
-    - [Cookiecutter template](#cookiecutter-template)
-    - [Manual setup](#manual-setup)
-    - [Variables reference](#variables-reference)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [Support](#support)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+The following files contain the subreddit locking logic:
 
-</details>
+- `app/src/main/java/ml/docilealligator/infinityforreddit/activities/MainActivity.java` - Main subreddit lock, UI changes
+- `app/src/main/java/ml/docilealligator/infinityforreddit/activities/LinkResolverActivity.java` - Link blocking
+- `app/src/main/java/ml/docilealligator/infinityforreddit/activities/ViewSubredditDetailActivity.java` - Subreddit access control
+- `app/src/main/java/ml/docilealligator/infinityforreddit/activities/ViewUserDetailActivity.java` - User profile blocking
+- `app/src/main/java/ml/docilealligator/infinityforreddit/activities/SearchActivity.java` - Search disable
+- `app/src/main/res/menu/main_activity.xml` - Search icon removal
+- `app/src/main/res/values/strings.xml` - App name
 
----
+## Requirements
 
-## About The Project
+- Android Studio or command line with JDK 11+
+- Android SDK
 
-<table>
-<tr>
-<td>
+## Building from source
 
-Key features of **Infinity For Reddit**:
+1. Clone the repository
+2. Open in Android Studio, or use command line:
 
-- Lazy mode: Automatic scrolling of posts enables you to enjoy amazing posts without moving your thumb.
-- Browsing posts
-- View comments
-- Expand and collapse comments section
-- Vote posts and comments
-- Save posts
-- Write comments
-- Edit comments and delete comments
-- Submit posts (text, link, image and video)
-- Edit posts (mark and unmark NSFW and spoiler and edit flair) and delete posts
-- See all the subscribed subreddits and followed users
-- View the messages
-- Get notifications of unread messages
-- etc...
+```bash
+# Debug build
+./gradlew assembleDebug
 
-</td>
-</tr>
-</table>
-
-<img 
-  src="https://raw.githubusercontent.com/Wladefant/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" 
-  alt="Screenshot 1"
-  height="200" >
-<img 
-  src="https://raw.githubusercontent.com/Wladefant/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" 
-  alt="Screenshot 2"
-  height="200" >
-<img 
-  src="https://raw.githubusercontent.com/Wladefant/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" 
-  alt="Screenshot 3"
-  height="200" >
-<img 
-  src="https://raw.githubusercontent.com/Wladefant/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" 
-  alt="Screenshot 4"
-  height="200" >
-<img 
-  src="https://raw.githubusercontent.com/Wladefant/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" 
-  alt="Screenshot 5"
-  height="200" >
-<img 
-  src="https://raw.githubusercontent.com/Wladefant/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" 
-  alt="Screenshot 6"
-  height="200" >
-<img 
-  src="https://raw.githubusercontent.com/Wladefant/Infinity-For-Reddit/master/fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" 
-  alt="Screenshot 7"
-  height="200" >
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-## Contributing
-
-First off, thanks for taking the time to contribute! Contributions are what makes the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request.
-It's better to also open an issue describing the issue you want to fix. But it is not required.
-
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch from `master` (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request to the `master` Branch
-
-Here are other ways you can help:
-
-- [Report Bugs](https://github.com/Docile-Alligator/Infinity-For-Reddit/issues)
-- [Make Suggestions](https://github.com/Docile-Alligator/Infinity-For-Reddit/discussions)
-- [Translate The App](https://poeditor.com/join/project?hash=b2IRyfaJv6)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
+# Release build
+./gradlew assembleRelease -x lint -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease
+```
 
 ## License
 
-Distributed under the AGPL-3.0 License. See <a href="https://github.com/Docile-Alligator/Infinity-For-Reddit/blob/master/LICENSE">LICENSE</a> for more information.
+Distributed under the AGPL-3.0 License. See [LICENSE](LICENSE) for more information.
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+## Original project
 
-## Contact
-
-[u/Hostilenemy](https://www.reddit.com/user/Hostilenemy) -
-docilealligator.app@gmail.com (Owner)
-
-or [u/Wladefant](https://www.reddit.com/user/Wladefant) - wladefant@gmail.com (Collaborator)
-
-Project Link: [https://github.com/Docile-Alligator/Infinity-For-Reddit](https://github.com/Docile-Alligator/Infinity-For-Reddit)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
+This is a fork of [Infinity for Reddit](https://github.com/Docile-Alligator/Infinity-For-Reddit) by [u/Hostilenemy](https://www.reddit.com/user/Hostilenemy).
